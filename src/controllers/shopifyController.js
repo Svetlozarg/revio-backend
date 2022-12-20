@@ -13,36 +13,36 @@ const Shopify = require('shopify-api-node');
 exports.getProducts = async (req, res) => {
   const { shopName } = req.body;
 
-  if (
-    typeof shopName === 'string' &&
-    shopName.trim() !== '' &&
-    typeof apiKey === 'string' &&
-    apiKey.trim() !== '' &&
-    typeof password === 'string' &&
-    password.trim() !== ''
-  ) {
-    try {
-      const shopify = new Shopify({
-        shopName: 'innowave-dev',
-        apiKey: '1dbbb54df92bc997465b594e250aed69',
-        password: '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',
-      });
-
-      shopify.product
-        .list()
-        .then((products) => {
-          res.send(products);
-        })
-        .catch((error) => res.status(500).send({ error: error.message }));
-    } catch (error) {
-      res.status(500).send({ error: error.message });
-    }
-  } else {
-    res.status(400).send({
-      error:
-        'Missing shop name, api key or password as a request body properties and they cannot be empty',
+  // if (
+  //   typeof shopName === 'string' &&
+  //   shopName.trim() !== '' &&
+  //   typeof apiKey === 'string' &&
+  //   apiKey.trim() !== '' &&
+  //   typeof password === 'string' &&
+  //   password.trim() !== ''
+  // ) {
+  try {
+    const shopify = new Shopify({
+      shopName: 'innowave-dev',
+      apiKey: '1dbbb54df92bc997465b594e250aed69',
+      password: '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',
     });
+
+    shopify.product
+      .list()
+      .then((products) => {
+        res.send(products);
+      })
+      .catch((error) => res.status(500).send({ error: error.message }));
+  } catch (error) {
+    res.status(500).send({ error: error.message });
   }
+  // } else {
+  //   res.status(400).send({
+  //     error:
+  //       'Missing shop name, api key or password as a request body properties and they cannot be empty',
+  //   });
+  // // }
 };
 
 // Search for products
