@@ -11,6 +11,17 @@ app.use(express.urlencoded({ extended: true }));
 // Import shopify routes
 const shopifyRoutes = require('./src/routes/shopifyRoutes');
 
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', '*');
+
+  if (req.method === 'OPTIONS') {
+    res.header('Access-Control-Allow-Methods', 'PUT, POST, PATCH, DELETE, GET');
+
+    return res.status(200).json({});
+  }
+});
+
 // Shopify routes
 app.use('/shopify', shopifyRoutes);
 
