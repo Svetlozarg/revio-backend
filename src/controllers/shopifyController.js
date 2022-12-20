@@ -6,6 +6,13 @@
 
 const Shopify = require('shopify-api-node');
 
+// TODO: get shopName from request and get apiKey and password from firebase
+const shopify = new Shopify({
+  shopName: 'innowave-dev',
+  apiKey: '1dbbb54df92bc997465b594e250aed69',
+  password: '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',
+});
+
 /* 
   Products
 */
@@ -13,21 +20,7 @@ const Shopify = require('shopify-api-node');
 exports.getProducts = async (req, res) => {
   const { shopName } = req.body;
 
-  // if (
-  //   typeof shopName === 'string' &&
-  //   shopName.trim() !== '' &&
-  //   typeof apiKey === 'string' &&
-  //   apiKey.trim() !== '' &&
-  //   typeof password === 'string' &&
-  //   password.trim() !== ''
-  // ) {
   try {
-    const shopify = new Shopify({
-      shopName: 'innowave-dev',
-      apiKey: '1dbbb54df92bc997465b594e250aed69',
-      password: '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',
-    });
-
     shopify.product
       .list()
       .then((products) => {
@@ -37,48 +30,22 @@ exports.getProducts = async (req, res) => {
   } catch (error) {
     res.status(500).send({ error: error.message });
   }
-  // } else {
-  //   res.status(400).send({
-  //     error:
-  //       'Missing shop name, api key or password as a request body properties and they cannot be empty',
-  //   });
-  // // }
 };
 
 // Search for products
 exports.searchProducts = async (req, res) => {
   // TODO: Query should include title
-  const { shopName, apiKey, password, query } = req.body;
+  const { shopName, query } = req.body;
 
-  if (
-    typeof shopName === 'string' &&
-    shopName.trim() !== '' &&
-    typeof apiKey === 'string' &&
-    apiKey.trim() !== '' &&
-    typeof password === 'string' &&
-    password.trim() !== ''
-  ) {
-    try {
-      const shopify = new Shopify({
-        shopName: shopName,
-        apiKey: apiKey,
-        password: password,
-      });
-
-      shopify.product
-        .list({ title: query })
-        .then((products) => {
-          res.send(products);
-        })
-        .catch((error) => res.status(500).send({ error: error.message }));
-    } catch (error) {
-      res.status(500).send({ error: error.message });
-    }
-  } else {
-    res.status(400).send({
-      error:
-        'Missing shop name, api key or password as a request body properties and they cannot be empty',
-    });
+  try {
+    shopify.product
+      .list({ title: query })
+      .then((products) => {
+        res.send(products);
+      })
+      .catch((error) => res.status(500).send({ error: error.message }));
+  } catch (error) {
+    res.status(500).send({ error: error.message });
   }
 };
 /* <=============================> */
@@ -88,37 +55,17 @@ exports.searchProducts = async (req, res) => {
 */
 // Fetch All Customers
 exports.getCustomers = async (req, res) => {
-  const { shopName, apiKey, password } = req.body;
+  const { shopName } = req.body;
 
-  if (
-    typeof shopName === 'string' &&
-    shopName.trim() !== '' &&
-    typeof apiKey === 'string' &&
-    apiKey.trim() !== '' &&
-    typeof password === 'string' &&
-    password.trim() !== ''
-  ) {
-    try {
-      const shopify = new Shopify({
-        shopName: shopName,
-        apiKey: apiKey,
-        password: password,
-      });
-
-      shopify.customer
-        .list()
-        .then((customers) => {
-          res.send(customers);
-        })
-        .catch((error) => res.status(500).send({ error: error.message }));
-    } catch (error) {
-      res.status(500).send({ error: error.message });
-    }
-  } else {
-    res.status(400).send({
-      error:
-        'Missing shop name, api key or password as a request body properties and they cannot be empty',
-    });
+  try {
+    shopify.customer
+      .list()
+      .then((customers) => {
+        res.send(customers);
+      })
+      .catch((error) => res.status(500).send({ error: error.message }));
+  } catch (error) {
+    res.status(500).send({ error: error.message });
   }
 };
 /* <=============================> */
@@ -128,47 +75,27 @@ exports.getCustomers = async (req, res) => {
 */
 // Fetch All Orders By Given Customer's Phone
 exports.getOrdersByCustomerPhone = async (req, res) => {
-  const { shopName, apiKey, password, phone } = req.body;
+  const { shopName, phone } = req.body;
 
-  if (
-    typeof shopName === 'string' &&
-    shopName.trim() !== '' &&
-    typeof apiKey === 'string' &&
-    apiKey.trim() !== '' &&
-    typeof password === 'string' &&
-    password.trim() !== ''
-  ) {
-    try {
-      const shopify = new Shopify({
-        shopName: shopName,
-        apiKey: apiKey,
-        password: password,
+  try {
+    shopify.customer
+      .search({ query: `phone:${phone}` })
+      .then((customers) => {
+        if (customers.length > 0) {
+          const customer = customers[0];
+          return shopify.order.list({ customer_id: customer.id });
+        } else {
+          throw new Error(`No customer found with phone number ${phone}`);
+        }
+      })
+      .then((orders) => {
+        res.send(orders);
+      })
+      .catch((error) => {
+        res.status(500).send({ error: error.message });
       });
-
-      shopify.customer
-        .search({ query: `phone:${phone}` })
-        .then((customers) => {
-          if (customers.length > 0) {
-            const customer = customers[0];
-            return shopify.order.list({ customer_id: customer.id });
-          } else {
-            throw new Error(`No customer found with phone number ${phone}`);
-          }
-        })
-        .then((orders) => {
-          res.send(orders);
-        })
-        .catch((error) => {
-          res.status(500).send({ error: error.message });
-        });
-    } catch (error) {
-      res.status(500).send({ error: error.message });
-    }
-  } else {
-    res.status(400).send({
-      error:
-        'Missing shop name, api key or password as a request body properties and they cannot be empty',
-    });
+  } catch (error) {
+    res.status(500).send({ error: error.message });
   }
 };
 /* <=============================> */
@@ -180,8 +107,6 @@ exports.getOrdersByCustomerPhone = async (req, res) => {
 exports.createDraftOrder = async (req, res) => {
   const {
     shopName,
-    apiKey,
-    password,
     // shipping_address,
     products,
     gateway,
@@ -207,45 +132,25 @@ exports.createDraftOrder = async (req, res) => {
   //   zip: '10001'
   // },
 
-  if (
-    typeof shopName === 'string' &&
-    shopName.trim() !== '' &&
-    typeof apiKey === 'string' &&
-    apiKey.trim() !== '' &&
-    typeof password === 'string' &&
-    password.trim() !== ''
-  ) {
-    try {
-      const shopify = new Shopify({
-        shopName: shopName,
-        apiKey: apiKey,
-        password: password,
+  try {
+    // Create a draft order
+    const draftOrder = {
+      line_items: products,
+      // shipping_address: shipping_address,
+      gateway: gateway,
+      note: note,
+    };
+
+    shopify.draftOrder
+      .create(draftOrder)
+      .then((draftOrder) => {
+        res.send(draftOrder.invoice_url);
+      })
+      .catch((error) => {
+        res.status(500).send({ error: error.message });
       });
-
-      // Create a draft order
-      const draftOrder = {
-        line_items: products,
-        // shipping_address: shipping_address,
-        gateway: gateway,
-        note: note,
-      };
-
-      shopify.draftOrder
-        .create(draftOrder)
-        .then((draftOrder) => {
-          res.send(draftOrder.invoice_url);
-        })
-        .catch((error) => {
-          res.status(500).send({ error: error.message });
-        });
-    } catch (error) {
-      res.status(500).send({ error: error.message });
-    }
-  } else {
-    res.status(400).send({
-      error:
-        'Missing shop name, api key or password as a request body properties and they cannot be empty',
-    });
+  } catch (error) {
+    res.status(500).send({ error: error.message });
   }
 };
 /* <=============================> */
@@ -255,134 +160,74 @@ exports.createDraftOrder = async (req, res) => {
 */
 // List all webhooks
 exports.webhookList = async (req, res) => {
-  const { shopName, apiKey, password } = req.body;
+  const { shopName } = req.body;
 
-  if (
-    typeof shopName === 'string' &&
-    shopName.trim() !== '' &&
-    typeof apiKey === 'string' &&
-    apiKey.trim() !== '' &&
-    typeof password === 'string' &&
-    password.trim() !== ''
-  ) {
-    try {
-      const shopify = new Shopify({
-        shopName: shopName,
-        apiKey: apiKey,
-        password: password,
+  try {
+    shopify.webhook
+      .list()
+      .then((webhooks) => {
+        res.send(webhooks);
+      })
+      .catch((error) => {
+        res.status(500).send({ error: error.message });
       });
-
-      shopify.webhook
-        .list()
-        .then((webhooks) => {
-          res.send(webhooks);
-        })
-        .catch((error) => {
-          res.status(500).send({ error: error.message });
-        });
-    } catch (error) {
-      res.status(500).send({ error: error.message });
-    }
-  } else {
-    res.status(400).send({
-      error:
-        'Missing shop name, api key or password as a request body properties and they cannot be empty',
-    });
+  } catch (error) {
+    res.status(500).send({ error: error.message });
   }
 };
 
 // Delete webhook
 exports.webhookDelete = async (req, res) => {
-  const { shopName, apiKey, password, address } = req.body;
+  const { shopName, address } = req.body;
 
-  if (
-    typeof shopName === 'string' &&
-    shopName.trim() !== '' &&
-    typeof apiKey === 'string' &&
-    apiKey.trim() !== '' &&
-    typeof password === 'string' &&
-    password.trim() !== ''
-  ) {
-    try {
-      const shopify = new Shopify({
-        shopName: shopName,
-        apiKey: apiKey,
-        password: password,
-      });
+  try {
+    shopify.webhook
+      .list()
+      .then((webhooks) => {
+        webhooks.forEach((webhook) => {
+          if (address === webhook.address) {
+            const webhookId = webhook.id;
 
-      shopify.webhook
-        .list()
-        .then((webhooks) => {
-          webhooks.forEach((webhook) => {
-            if (address === webhook.address) {
-              const webhookId = webhook.id;
-
-              shopify.webhook
-                .delete(webhookId)
-                .then((webhook) => {
-                  res.send('Webhook successfully deleted');
-                })
-                .catch((error) => {
-                  res.status(500).send({ error: error.message });
-                });
-            }
-          });
-        })
-        .catch((error) => {
-          res.status(500).send({ error: error.message });
+            shopify.webhook
+              .delete(webhookId)
+              .then((webhook) => {
+                res.send('Webhook successfully deleted');
+              })
+              .catch((error) => {
+                res.status(500).send({ error: error.message });
+              });
+          }
         });
-    } catch (error) {
-      res.status(500).send({ error: error.message });
-    }
-  } else {
-    res.status(400).send({
-      error:
-        'Missing shop name, api key or password as a request body properties and they cannot be empty',
-    });
+      })
+      .catch((error) => {
+        res.status(500).send({ error: error.message });
+      });
+  } catch (error) {
+    res.status(500).send({ error: error.message });
   }
 };
 
 // Create webhook for order creation
 exports.webhookOrderCreation = async (req, res) => {
-  const { shopName, apiKey, password, address } = req.body;
+  const { shopName, address } = req.body;
 
-  if (
-    typeof shopName === 'string' &&
-    shopName.trim() !== '' &&
-    typeof apiKey === 'string' &&
-    apiKey.trim() !== '' &&
-    typeof password === 'string' &&
-    password.trim() !== ''
-  ) {
-    try {
-      const shopify = new Shopify({
-        shopName: shopName,
-        apiKey: apiKey,
-        password: password,
+  try {
+    const webhook = {
+      topic: 'orders/create',
+      address: address,
+      format: 'json',
+    };
+
+    shopify.webhook
+      .create(webhook)
+      .then((response) => {
+        res.send(response);
+      })
+      .catch((error) => {
+        res.status(500).send({ error: error.message });
       });
-
-      const webhook = {
-        topic: 'orders/create',
-        address: address,
-        format: 'json',
-      };
-
-      shopify.webhook
-        .create(webhook)
-        .then((response) => {
-          res.send(response);
-        })
-        .catch((error) => {
-          res.status(500).send({ error: error.message });
-        });
-    } catch (error) {
-      res.status(500).send({ error: error.message });
-    }
-  } else {
-    res.status(400).send({
-      error:
-        'Missing shop name, api key or password as a request body properties and they cannot be empty',
-    });
+  } catch (error) {
+    res.status(500).send({ error: error.message });
   }
 };
 /* <=============================> */
