@@ -11,7 +11,7 @@ const Shopify = require('shopify-api-node');
 */
 // Fetch All Products
 exports.getProducts = async (req, res) => {
-  const { shopName, apiKey, password } = req.body;
+  const { shopName } = req.body;
 
   if (
     typeof shopName === 'string' &&
@@ -23,9 +23,9 @@ exports.getProducts = async (req, res) => {
   ) {
     try {
       const shopify = new Shopify({
-        shopName: shopName,
-        apiKey: apiKey,
-        password: password,
+        shopName: 'innowave-dev',
+        apiKey: '1dbbb54df92bc997465b594e250aed69',
+        password: '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',
       });
 
       shopify.product
