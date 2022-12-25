@@ -34,14 +34,23 @@ exports.getProducts = async (req, res) => {
 
 // Search for products
 exports.searchProducts = async (req, res) => {
-  // TODO: Query should include title
   const { shopName, query } = req.body;
 
   try {
+    const productArr = [];
     shopify.product
-      .list({ title: query })
+      .list()
       .then((products) => {
-        res.send(products);
+        // Iterate over each product in the list
+        products.forEach((product) => {
+          // Check if the product title contains the search query string
+          if (product.title.toLowerCase().includes(query.toLowerCase())) {
+            productArr.push(product);
+          }
+        });
+      })
+      .then(() => {
+        res.send(productArr);
       })
       .catch((error) => res.status(500).send({ error: error.message }));
   } catch (error) {
